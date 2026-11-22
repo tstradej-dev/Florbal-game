@@ -114,7 +114,8 @@ body{touch-action:none}
 
 <script>
 const NS='http://www.w3.org/2000/svg',playersEl=document.getElementById('players'),puckEl=document.getElementById('puck');
-const rink={x:55,y:95,w:1490,h:700},midX:800;
+const rink={x:55,y:95,w:1490,h:700};
+const midX=800;
 let players=[],controlled=null,owner=null,running=false,time=180,blue=0,yellow=0,charge=0;
 const input={x:0,y:0};
 function svg(tag,attrs={}){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e}

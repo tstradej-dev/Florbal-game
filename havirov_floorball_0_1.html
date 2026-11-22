@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Havířov Floorball 0.1</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Arial,sans-serif;touch-action:none}
+body{display:flex;align-items:center;justify-content:center}
+#game{display:block;width:100vw;height:100vh;background:#17251d}
+#hud{position:fixed;left:0;top:0;width:100%;padding:8px 14px;color:#fff;display:flex;justify-content:space-between;align-items:center;pointer-events:none;font-weight:700;text-shadow:0 2px 3px #000}
+.score{font-size:24px}.team{font-size:14px}.time{font-size:18px}
+#message{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-size:30px;font-weight:800;text-align:center;text-shadow:0 3px 8px #000;pointer-events:none;display:none}
+#controls{position:fixed;inset:0;pointer-events:none}
+#stick{position:absolute;left:24px;bottom:28px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.13);border:2px solid rgba(255,255,255,.35);pointer-events:auto}
+#knob{position:absolute;left:45px;top:45px;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.48)}
+.btn{position:absolute;right:25px;border:2px solid rgba(255,255,255,.45);border-radius:50%;width:82px;height:82px;color:white;font-weight:800;background:rgba(30,30,30,.45);pointer-events:auto}
+#shoot{bottom:35px;background:rgba(180,30,30,.55)}#pass{bottom:130px;width:66px;height:66px;right:105px;background:rgba(30,80,180,.55)}
+.small{font-size:11px;display:block;margin-top:2px}
+#start{position:fixed;inset:0;background:linear-gradient(135deg,#071a32,#161616);display:flex;align-items:center;justify-content:center;color:white;z-index:5}
+.card{width:min(420px,90vw);padding:28px;border:1px solid #ffffff33;border-radius:20px;background:#ffffff12;text-align:center;box-shadow:0 20px 70px #0008}
+.card h1{margin:0 0 8px;font-size:34px}.card p{opacity:.8;margin:6px 0 22px}
+button.start{border:0;border-radius:14px;padding:15px 30px;font-size:18px;font-weight:800;background:#fff;color:#111}
+#hint{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:#fff8;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <div><div class="team">SLOVAN HAVÍŘOV</div><div class="score" id="blueScore">0</div></div>
+  <div class="time" id="clock">03:00</div>
+  <div style="text-align:right"><div class="team">TORPÉDO HAVÍŘOV</div><div class="score" id="yellowScore">0</div></div>
+</div>
+
+<div id="message"></div>
+
+<div id="controls">
+  <div id="stick"><div id="knob"></div></div>
+  <button class="btn" id="pass">PŘIHR.<span class="small">PASS</span></button>
+  <button class="btn" id="shoot">STŘELA<span class="small">SHOT</span></button>
+</div>
+<div id="hint">Levý joystick = pohyb • Přihrávka • Střela</div>
+
+<div id="start">
+  <div class="card">
+    <h1>HAVÍŘOV FLOORBALL</h1>
+    <p>Arkádový zápas • verze 0.1</p>
+    <p><b>Modří:</b> Slovan Havířov<br><b>Žluto-černí:</b> Torpédo Havířov</p>
+    <button class="start" id="startBtn">HRÁT ZÁPAS</button>
+  </div>
+</div>
+
+<script>
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+let W=1280,H=720,dpr=1,started=false,last=0,gameTime=180;
+let blueScore=0,yellowScore=0,goalFlash=0;
+const field={x:70,y:70,w:1140,h:580};
+const players=[],keys={};
+let controlled=null,stick={x:0,y:0},stickActive=false;
+
+function resize(){dpr=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*dpr;canvas.height=innerHeight*dpr;W=innerWidth;H=innerHeight}
+addEventListener('resize',resize);resize();
+
+function sx(){return W/1280} function sy(){return H/720}
+function X(x){return x*sx()} function Y(y){return y*sy()}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+class Player{
+ constructor(team,x,y,role){
+  this.team=team;this.x=x;this.y=y;this.homeX=x;this.homeY=y;this.role=role;
+  this.r=role==='GK'?25:20;this.speed=role==='GK'?155:190;
+  this.dir=team==='blue'?1:-1;this.cool=0;this.stun=0;this.num=Math.floor(Math.random()*90)+1;
+ }
+ draw(){
+  ctx.save();ctx.translate(X(this.x),Y(this.y));
+  ctx.shadowBlur=8;ctx.shadowColor='#0008';
+  ctx.beginPath();ctx.arc(0,0,X(this.r),0,Math.PI*2);
+  ctx.fillStyle=this.team==='blue'?'#1767d2':'#e8c300';ctx.fill();ctx.shadowBlur=0;
+  ctx.lineWidth=3;ctx.strokeStyle=this.team==='blue'?'#a9d4ff':'#111';ctx.stroke();
+  ctx.fillStyle=this.team==='blue'?'#fff':'#111';ctx.font=`bold ${X(13)}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(this.num,0,0);
+  // stick
+  ctx.strokeStyle='#e8e1d4';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(this.dir*8,8);ctx.lineTo(this.dir*27,17);ctx.stroke();
+  ctx.restore();
+ }
+}
+
+const puck={x:640,y:360,vx:0,vy:0,r:8,owner:null};
+function resetPositions(){
+ players.length=0;
+ const blue=[
+  new Player('blue',220,360,'GK'),new Player('blue',400,220,'F'),new Player('blue',400,360,'F'),
+  new Player('blue',400,500,'F'),new Player('blue',510,360,'D'),];
+ const yellow=[
+  new Player('yellow',1060,360,'GK'),new Player('yellow',880,220,'F'),new Player('yellow',880,360,'F'),
+  new Player('yellow',880,500,'F'),new Player('yellow',770,360,'D')];
+ players.push(...blue,...yellow);controlled=blue[2];puck.owner=controlled;puck.x=controlled.x;puck.y=controlled.y;
+}
+
+function nearestPlayer(team){
+ let best=null,bd=1e9;
+ for(const p of players)if(p.team===team&&p.role!=='GK'){let d=dist(p,puck);if(d<bd){bd=d;best=p}}
+ return best;
+}
+function shoot(){
+ if(!started||!controlled)return;
+ if(puck.owner===controlled){
+  let tx=controlled.team==='blue'?field.x+field.w+40:field.x-40;
+  let dx=tx-controlled.x,dy=360-controlled.y,l=Math.hypot(dx,dy)||1;
+  puck.owner=null;puck.vx=dx/l*600;puck.vy=dy/l*600;puck.x=controlled.x+dx/l*22;puck.y=controlled.y+dy/l*22;
+  controlled.cool=.35;
+ }
+}
+function pass(){
+ if(!started||!controlled||puck.owner!==controlled)return;
+ const mates=players.filter(p=>p.team===controlled.team&&p!==controlled&&p.role!=='GK');
+ mates.sort((a,b)=>dist(a,controlled)-dist(b,controlled));
+ const t=mates[0]; if(!t)return;
+ const dx=t.x-controlled.x,dy=t.y-controlled.y,l=Math.hypot(dx,dy)||1;
+ puck.owner=null;puck.vx=dx/l*430;puck.vy=dy/l*430;
+ controlled.cool=.25;
+}
+function update(dt){
+ if(!started)return;
+ gameTime-=dt;if(gameTime<=0){gameTime=0;started=false;showMessage(`KONEC ZÁPASU\\n${blueScore} : ${yellowScore}`);return}
+ document.getElementById('clock').textContent=`${Math.floor(gameTime/60).toString().padStart(2,'0')}:${Math.floor(gameTime%60).toString().padStart(2,'0')}`;
+ for(const p of players){p.cool=Math.max(0,p.cool-dt);p.stun=Math.max(0,p.stun-dt)}
+ // Controlled player
+ if(controlled){
+  let vx=stick.x,vy=stick.y;
+  if(Math.hypot(vx,vy)>.05){let l=Math.hypot(vx,vy);vx/=l;vy/=l;controlled.x+=vx*controlled.speed*dt;controlled.y+=vy*controlled.speed*dt;controlled.dir=vx>=0?1:-1}
+  controlled.x=clamp(controlled.x,field.x+25,field.x+field.w-25);
+  controlled.y=clamp(controlled.y,field.y+25,field.y+field.h-25);
+ }
+ // AI
+ for(const p of players){
+  if(p===controlled)continue;
+  let target=null;
+  if(puck.owner===p) target={x:p.team==='blue'?field.x+field.w+40:field.x-40,y:360};
+  else if(!puck.owner && p===nearestPlayer(p.team)) target=puck;
+  else target={x:p.homeX+(p.team==='blue'?25:-25),y:p.homeY};
+  let dx=target.x-p.x,dy=target.y-p.y,l=Math.hypot(dx,dy);
+  if(l>8){p.x+=dx/l*p.speed*.52*dt;p.y+=dy/l*p.speed*.52*dt;p.dir=dx>=0?1:-1}
+  p.x=clamp(p.x,field.x+20,field.x+field.w-20);p.y=clamp(p.y,field.y+20,field.y+field.h-20);
+  if(puck.owner===p&&p.cool<=0&&Math.random()<dt*.8){
+    let tx=p.team==='blue'?field.x+field.w+30:field.x-30;
+    let ax=tx-p.x,ay=360-p.y,ll=Math.hypot(ax,ay)||1;
+    puck.owner=null;puck.vx=ax/ll*470;puck.vy=ay/ll*470;p.cool=.7;
+  }
+ }
+ // possession / puck
+ if(puck.owner){puck.x=puck.owner.x+puck.owner.dir*18;puck.y=puck.owner.y+4}
+ else{
+  puck.x+=puck.vx*dt;puck.y+=puck.vy*dt;puck.vx*=Math.pow(.15,dt);puck.vy*=Math.pow(.15,dt);
+  if(puck.y<field.y+8||puck.y>field.y+field.h-8){puck.y=clamp(puck.y,field.y+8,field.y+field.h-8);puck.vy*=-.75}
+  // pickup
+  for(const p of players)if(p.cool<=0&&dist(p,puck)<p.r+10){puck.owner=p;puck.vx=puck.vy=0;break}
+  // goals
+  if(puck.x<field.x-12){yellowScore++;goal('yellow')}
+  if(puck.x>field.x+field.w+12){blueScore++;goal('blue')}
+ }
+}
+function goal(team){
+ document.getElementById('blueScore').textContent=blueScore;
+ document.getElementById('yellowScore').textContent=yellowScore;
+ goalFlash=1.2;showMessage(team==='blue'?'GÓL SLOVAN!':'GÓL TORPÉDO!');
+ setTimeout(()=>{if(started){hideMessage();resetPositions()}},900);
+}
+function showMessage(t){const m=document.getElementById('message');m.textContent=t;m.style.display='block'}
+function hideMessage(){document.getElementById('message').style.display='none'}
+
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ // background
+ ctx.fillStyle='#0b1410';ctx.fillRect(0,0,W,H);
+ // rink
+ ctx.save();ctx.translate(X(field.x),Y(field.y));ctx.scale(sx(),sy());
+ ctx.fillStyle='#dce9ef';ctx.fillRect(0,0,field.w,field.h);
+ ctx.strokeStyle='#8fa6b1';ctx.lineWidth=4;ctx.strokeRect(0,0,field.w,field.h);
+ // center and lines
+ ctx.strokeStyle='#b54d4d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(field.w/2,0);ctx.lineTo(field.w/2,field.h);ctx.stroke();
+ ctx.strokeStyle='#6d8ca0';ctx.beginPath();ctx.moveTo(field.w*.25,0);ctx.lineTo(field.w*.25,field.h);ctx.moveTo(field.w*.75,0);ctx.lineTo(field.w*.75,field.h);ctx.stroke();
+ // circles
+ for(const cx of [field.w*.25,field.w*.5,field.w*.75]){ctx.beginPath();ctx.arc(cx,field.h/2,55,0,Math.PI*2);ctx.stroke()}
+ // goals
+ ctx.fillStyle='#b8c4ca';ctx.fillRect(-18,field.h/2-48,18,96);ctx.fillRect(field.w,field.h/2-48,18,96);
+ ctx.restore();
+ // puck
+ ctx.save();ctx.beginPath();ctx.arc(X(puck.x),Y(puck.y),X(puck.r),0,Math.PI*2);ctx.fillStyle='#111';ctx.fill();ctx.restore();
+ for(const p of players)p.draw();
+ if(goalFlash>0){ctx.fillStyle=`rgba(255,255,255,${goalFlash*.25})`;ctx.fillRect(0,0,W,H);goalFlash-=.016}
+}
+function loop(t){let dt=Math.min(.033,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+
+function setStick(e){
+ const r=document.getElementById('stick').getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ let dx=e.clientX-cx,dy=e.clientY-cy,l=Math.hypot(dx,dy),max=52;
+ if(l>max){dx=dx/l*max;dy=dy/l*max}
+ stick.x=dx/max;stick.y=dy/max;
+ document.getElementById('knob').style.transform=`translate(${dx}px,${dy}px)`;
+}
+const stickEl=document.getElementById('stick');
+stickEl.addEventListener('pointerdown',e=>{stickActive=true;stickEl.setPointerCapture(e.pointerId);setStick(e)});
+stickEl.addEventListener('pointermove',e=>{if(stickActive)setStick(e)});
+stickEl.addEventListener('pointerup',()=>{stickActive=false;stick={x:0,y:0};document.getElementById('knob').style.transform='translate(0,0)'});
+document.getElementById('shoot').addEventListener('pointerdown',shoot);
+document.getElementById('pass').addEventListener('pointerdown',pass);
+document.getElementById('startBtn').addEventListener('click',()=>{
+ document.getElementById('start').style.display='none';started=true;gameTime=180;blueScore=yellowScore=0;
+ document.getElementById('blueScore').textContent='0';document.getElementById('yellowScore').textContent='0';hideMessage();resetPositions();
+});
+</script>
+</body>
+</html>

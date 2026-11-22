@@ -21,6 +21,11 @@
 #bar{position:absolute;right:165px;bottom:94px;width:83px;height:7px;border-radius:4px;background:#020508;border:1px solid #fff6;overflow:hidden}
 #fill{height:100%;width:0;background:#fff}
 #help{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);color:#ffffff40;font-size:9px;white-space:nowrap}
+#rotate{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:#05090d;color:#fff;text-align:center;padding:28px}
+#rotate .rbox{max-width:330px;border:1px solid #ffffff20;border-radius:18px;background:#0c151d;padding:28px;box-shadow:0 20px 80px #000}
+#rotate .ico{font-size:52px;margin-bottom:10px}
+#rotate h2{margin:0 0 8px;font-size:23px}
+#rotate p{margin:0;color:#9aa7af;font-size:12px;line-height:1.5}
 #start,#end{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#183b4e,#071016 60%,#020406)}
 .card{width:min(620px,88vw);padding:38px;text-align:center;color:#fff;border:1px solid #ffffff28;border-radius:20px;background:#071018f2;box-shadow:0 30px 100px #000e}
 .logo{font-size:52px;line-height:.88;font-weight:1000;letter-spacing:-3px}.sub{margin-top:12px;color:#9daab2;font-size:11px;letter-spacing:4px}.match{margin:28px 0 8px;font-size:26px;font-weight:1000}
@@ -30,6 +35,8 @@
 </head>
 <body>
 <canvas id="game"></canvas>
+
+<div id="rotate"><div class="rbox"><div class="ico">↻</div><h2>Otoč telefon na šířku</h2><p>Havířov Floorball je navržený jako starší konzolová sportovní hra v poměru 16:9.</p></div></div>
 
 <div id="hud">
   <div id="score">
@@ -69,9 +76,22 @@
 
 <script>
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-let W=0,H=0,DPR=1;
-function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0)}
-addEventListener('resize',resize);resize();
+let W=0,H=0,DPR=1,VIEW_W=1600,VIEW_H=900,VIEW_S=1,VIEW_X=0,VIEW_Y=0;
+function resize(){
+  DPR=Math.min(2,devicePixelRatio||1);
+  W=innerWidth; H=innerHeight;
+  canvas.width=Math.round(W*DPR);
+  canvas.height=Math.round(H*DPR);
+  canvas.style.width=W+'px';
+  canvas.style.height=H+'px';
+  VIEW_S=Math.min(W/VIEW_W,H/VIEW_H);
+  VIEW_X=(W-VIEW_W*VIEW_S)/2;
+  VIEW_Y=(H-VIEW_H*VIEW_S)/2;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',resize);
+addEventListener('orientationchange',()=>setTimeout(resize,100));
+resize();
 
 const FIELD={L:-18,R:18,T:-9,B:9};
 const players=[];
@@ -138,16 +158,20 @@ document.getElementById('startBtn').onclick=start;document.getElementById('again
 
 /* --------- 2.5D renderer: stable, game-like and no external engine --------- */
 function project(x,z){
- // perspective: far end is smaller and higher, near end larger/lower
- const horizon=H*.25;
- const depth=(z-FIELD.T)/(FIELD.B-FIELD.T);
- const scale=.48+.72*depth;
- return {x:W/2+x*scale*W/39,y:horizon+depth*(H*.58)+Math.sin(depth*Math.PI)*H*.025,s:scale};
+  // Fixed 16:9 virtual scene. The whole rink is uniformly fitted into
+  // the device viewport, so portrait Safari can never crop/zoom the field.
+  const depth=(z-FIELD.T)/(FIELD.B-FIELD.T);
+  const ps=.48+.72*depth;
+  return {
+    x:VIEW_X+(VIEW_W/2+x*ps*VIEW_W/39)*VIEW_S,
+    y:VIEW_Y+(145+depth*520+Math.sin(depth*Math.PI)*22)*VIEW_S,
+    s:ps*VIEW_S
+  };
 }
 function poly(points,fill,stroke,lw=1){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.lineWidth=lw;ctx.strokeStyle=stroke;ctx.stroke()}}
 function line(a,b,color,w=1){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=color;ctx.lineWidth=w;ctx.stroke()}
 function ellipseWorld(x,z,rx,rz,fill,stroke){
- const p=project(x,z);ctx.beginPath();ctx.ellipse(p.x,p.y,rx*p.s*W/39,rz*p.s*W/39,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.stroke()}
+ const p=project(x,z);ctx.beginPath();ctx.ellipse(p.x,p.y,rx*p.s*VIEW_W/39,rz*p.s*VIEW_W/39,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.stroke()}
 }
 function drawField(){
  const a=project(FIELD.L,FIELD.T),b=project(FIELD.R,FIELD.T),c=project(FIELD.R,FIELD.B),d=project(FIELD.L,FIELD.B);
@@ -174,7 +198,7 @@ function drawField(){
  }
 }
 function drawPlayer(p){
- const q=project(p.x,p.z),s=q.s*W/39;
+ const q=project(p.x,p.z),s=q.s*VIEW_W/39;
  const col=p.team==='B'?'#1675d1':'#e0bf19',dark=p.team==='B'?'#0a2d59':'#161616';
  // shadow
  ctx.beginPath();ctx.ellipse(q.x,q.y+6*s,18*s,7*s,0,0,Math.PI*2);ctx.fillStyle='#0004';ctx.fill();
@@ -193,7 +217,7 @@ function drawPlayer(p){
  ctx.strokeStyle='#444';ctx.lineWidth=Math.max(2,3*s);ctx.beginPath();ctx.moveTo(q.x+p.dir*30*s,q.y+19*s);ctx.lineTo(q.x+p.dir*38*s,q.y+19*s);ctx.stroke();
  if(p===controlled){ctx.beginPath();ctx.arc(q.x,q.y-46*s,4*s,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill()}
 }
-function drawPuck(){const p=project(puck.x,puck.z);const r=Math.max(4,p.s*W/150);ctx.beginPath();ctx.ellipse(p.x,p.y+2,r*1.35,r*.7,0,0,Math.PI*2);ctx.fillStyle='#111';ctx.fill();ctx.strokeStyle='#fff8';ctx.stroke()}
+function drawPuck(){const p=project(puck.x,puck.z);const r=Math.max(3,p.s*VIEW_W/150);ctx.beginPath();ctx.ellipse(p.x,p.y+2,r*1.35,r*.7,0,0,Math.PI*2);ctx.fillStyle='#111';ctx.fill();ctx.strokeStyle='#fff8';ctx.stroke()}
 
 function aiMove(p,dt){
  let tx=p.homeX,tz=p.homeZ;
@@ -226,9 +250,16 @@ function update(dt){
 function resetAfterGoal(t){owner=null;puck.x=0;puck.z=0;puck.vx=puck.vz=0;msg(t);setTimeout(()=>{if(running){setup();controlled=players[2];setOwner(controlled)}},700)}
 
 function render(){
+ ctx.setTransform(DPR,0,0,DPR,0,0);
  ctx.clearRect(0,0,W,H);
  // dark arena
  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#071019');g.addColorStop(1,'#101820');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ // fixed 16:9 play area, letterboxed rather than cropped
+ ctx.save();
+ ctx.translate(VIEW_X,VIEW_Y);
+ ctx.scale(VIEW_S,VIEW_S);
+ ctx.fillStyle='#05090d';ctx.fillRect(0,0,VIEW_W,VIEW_H);
+ ctx.restore();
  // arena lights
  ctx.globalAlpha=.18;for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(W*(.1+i*.12),H*.12,90,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill()}ctx.globalAlpha=1;
  drawField();
@@ -240,3 +271,18 @@ let last=performance.now();function loop(t){const dt=Math.min(.033,(t-last)/1000
 </script>
 </body>
 </html>
+<style>
+@media (orientation:portrait){
+  #rotate{display:flex}
+}
+@media (orientation:landscape) and (max-height:520px){
+  #score{top:8px;height:48px;min-width:390px}
+  .team{font-size:13px}.score{font-size:28px}.clock{font-size:16px}
+  #joy{width:128px;height:128px;left:18px;bottom:15px}
+  #knob{left:36px;top:36px;width:56px;height:56px}
+  #shoot{width:96px;height:96px;right:18px;bottom:15px}
+  #pass{width:70px;height:70px;right:112px;bottom:92px}
+  #switch{right:24px;bottom:118px}
+  #check{right:100px;bottom:15px}
+}
+</style>

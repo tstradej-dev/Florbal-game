@@ -73,8 +73,41 @@ background:radial-gradient(circle,#ffffff08 0 31%,#ffffff03 32% 59%,transparent 
  <button class="startbtn" id="again">HRÁT ZNOVU</button>
 </div></div>
 
-<script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+<script>
+/* Start/menu controls are installed before the 3D engine loads.
+   This prevents a CDN/module failure from making the Start button dead. */
+const startScreen = document.getElementById('start');
+const endScreen = document.getElementById('end');
+const startBtn = document.getElementById('startBtn');
+const againBtn = document.getElementById('again');
+
+function showEngineError() {
+  const note = document.querySelector('#start .note');
+  note.textContent = '3D engine se nenačetl. Obnov stránku a zkus to znovu.';
+  note.style.color = '#ff9b9b';
+}
+
+let engineReady = false;
+startBtn.addEventListener('click', () => {
+  if (engineReady && window.startGame) window.startGame();
+  else showEngineError();
+});
+againBtn.addEventListener('click', () => {
+  if (engineReady && window.startGame) window.startGame();
+  else showEngineError();
+});
+
+const threeScript = document.createElement('script');
+threeScript.src = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';
+threeScript.onload = () => {
+  engineReady = true;
+  initGame();
+};
+threeScript.onerror = showEngineError;
+document.head.appendChild(threeScript);
+
+function initGame() {
+const THREE = window.THREE;
 
 const root=document.getElementById('game');
 const scene=new THREE.Scene();
@@ -216,8 +249,20 @@ joy.addEventListener('pointerdown',e=>{joy.setPointerCapture(e.pointerId);joySet
 const shootBtn=document.getElementById('shoot');shootBtn.addEventListener('pointerdown',()=>{if(running){charging=true;charge=0}});shootBtn.addEventListener('pointerup',()=>{if(charging){shoot();charging=false}});shootBtn.addEventListener('pointercancel',()=>charging=false);
 setInterval(()=>{if(charging){charge=Math.min(1,charge+.035);document.querySelector('#power i').style.width=(charge*100)+'%'}},40);
 document.getElementById('pass').addEventListener('pointerdown',pass);document.getElementById('switch').addEventListener('pointerdown',switchPlayer);document.getElementById('check').addEventListener('pointerdown',pressure);
-function start(){document.getElementById('start').style.display='none';document.getElementById('end').style.display='none';blueScore=yellowScore=0;time=180;document.getElementById('bs').textContent='0';document.getElementById('ys').textContent='0';teams();controlled=players[2];setOwner(controlled);running=true}
-document.getElementById('startBtn').onclick=start;document.getElementById('again').onclick=start;
+window.startGame = function(){
+  document.getElementById('start').style.display='none';
+  document.getElementById('end').style.display='none';
+  blueScore=yellowScore=0;
+  time=180;
+  document.getElementById('bs').textContent='0';
+  document.getElementById('ys').textContent='0';
+  teams();
+  controlled=players[2];
+  setOwner(controlled);
+  running=true;
+  msg('ZÁPAS ZAČÍNÁ',700);
+};
+} // initGame
 </script>
 </body>
 </html>

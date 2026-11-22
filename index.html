@@ -3,286 +3,182 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Slovan vs Torpédo — Havířov Floorball</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Havířov Floorball 0.6</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;font-family:Arial,Helvetica,sans-serif;touch-action:none}
-#game{position:fixed;inset:0;width:100%;height:100%;display:block}
-#hud{position:fixed;inset:0;pointer-events:none}
-#score{position:absolute;top:14px;left:50%;transform:translateX(-50%);height:64px;min-width:440px;padding:0 25px;display:flex;align-items:center;justify-content:center;gap:18px;border-radius:10px;background:linear-gradient(180deg,#121c25f5,#060b10f5);border:1px solid #ffffff26;box-shadow:0 8px 28px #000b;color:#fff}
-.team{font-size:15px;font-weight:900;letter-spacing:1px}.blue{color:#54aef7}.yellow{color:#f4d329}.score{font-size:34px;font-weight:1000}.clock{font-size:18px;font-weight:900;color:#dce5e9}
-#msg{position:absolute;top:92px;left:50%;transform:translateX(-50%);font-size:20px;font-weight:1000;color:#fff;text-shadow:0 3px 8px #000;opacity:0;transition:.1s}
-#joy{position:absolute;left:28px;bottom:25px;width:154px;height:154px;border-radius:50%;background:#07121cdd;border:2px solid #ffffff32;box-shadow:0 10px 30px #000c;pointer-events:auto}
-#knob{position:absolute;left:44px;top:44px;width:64px;height:64px;border-radius:50%;background:linear-gradient(145deg,#e9edf0,#687179);border:1px solid #fff9;box-shadow:0 7px 18px #000c}
-.btn{position:absolute;border:1px solid #fff9;color:#fff;font-weight:1000;border-radius:50%;box-shadow:0 9px 25px #000c;pointer-events:auto;text-shadow:0 2px 5px #000}
-#pass{right:155px;bottom:118px;width:82px;height:82px;background:radial-gradient(circle at 35% 25%,#5ebcff,#174d83 75%)}
-#shoot{right:27px;bottom:24px;width:116px;height:116px;background:radial-gradient(circle at 35% 25%,#fa5b64,#8c1119 75%);font-size:13px}
-#switch{right:34px;bottom:158px;width:61px;height:61px;background:#26333f}
-#check{right:130px;bottom:25px;width:61px;height:61px;background:#858b1be8}
-#bar{position:absolute;right:165px;bottom:94px;width:83px;height:7px;border-radius:4px;background:#020508;border:1px solid #fff6;overflow:hidden}
-#fill{height:100%;width:0;background:#fff}
-#help{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);color:#ffffff40;font-size:9px;white-space:nowrap}
-#rotate{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:#05090d;color:#fff;text-align:center;padding:28px}
-#rotate .rbox{max-width:330px;border:1px solid #ffffff20;border-radius:18px;background:#0c151d;padding:28px;box-shadow:0 20px 80px #000}
-#rotate .ico{font-size:52px;margin-bottom:10px}
-#rotate h2{margin:0 0 8px;font-size:23px}
-#rotate p{margin:0;color:#9aa7af;font-size:12px;line-height:1.5}
-#start,#end{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#183b4e,#071016 60%,#020406)}
-.card{width:min(620px,88vw);padding:38px;text-align:center;color:#fff;border:1px solid #ffffff28;border-radius:20px;background:#071018f2;box-shadow:0 30px 100px #000e}
-.logo{font-size:52px;line-height:.88;font-weight:1000;letter-spacing:-3px}.sub{margin-top:12px;color:#9daab2;font-size:11px;letter-spacing:4px}.match{margin:28px 0 8px;font-size:26px;font-weight:1000}
-.start{margin-top:22px;padding:15px 35px;border:0;border-radius:8px;background:#f3f5f6;color:#071018;font-size:16px;font-weight:1000}.note{margin-top:12px;color:#6f7d86;font-size:10px}
-#end{display:none}.final{font-size:68px;font-weight:1000;margin:14px}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020508;font-family:Arial,Helvetica,sans-serif}
+body{touch-action:none}
+#app{position:fixed;inset:0;background:#020508;overflow:hidden}
+#rinkSvg{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ui{position:absolute;inset:0;pointer-events:none}
+#score{
+ position:absolute;top:14px;left:50%;transform:translateX(-50%);
+ width:min(720px,72vw);height:70px;border-radius:14px;
+ background:linear-gradient(180deg,#111a23f5,#050a0ff5);
+ border:1px solid #ffffff22;box-shadow:0 12px 40px #000b;
+ display:flex;align-items:center;justify-content:center;gap:25px;color:#fff
+}
+.team{font-weight:900;letter-spacing:2px;font-size:18px}.blue{color:#55aaff}.yellow{color:#f4dc32}
+.sc{font-size:38px;font-weight:1000;min-width:35px;text-align:center}.clock{font-size:22px;font-weight:900;color:#dbe2e7}
+#joystick{position:absolute;left:28px;bottom:28px;width:160px;height:160px;border-radius:50%;
+ background:radial-gradient(circle,#1d2a35 0 35%,#0a151f 36% 66%,#050b11 67%);
+ border:2px solid #ffffff30;box-shadow:0 10px 35px #000b;pointer-events:auto}
+#knob{position:absolute;left:50%;top:50%;width:66px;height:66px;transform:translate(-50%,-50%);
+ border-radius:50%;background:linear-gradient(145deg,#e5e9eb,#626a70);border:1px solid #fff8;box-shadow:0 6px 18px #000c}
+.btn{position:absolute;border:1px solid #ffffff55;border-radius:50%;color:#fff;font-weight:1000;text-shadow:0 2px 6px #000;box-shadow:0 8px 28px #000b;pointer-events:auto}
+#pass{right:175px;bottom:112px;width:84px;height:84px;background:radial-gradient(circle at 35% 25%,#67b8fa,#174f88 75%)}
+#switch{right:34px;bottom:205px;width:68px;height:68px;background:#27323eee}
+#check{right:155px;bottom:27px;width:68px;height:68px;background:#77831de8}
+#shoot{right:30px;bottom:25px;width:124px;height:124px;background:radial-gradient(circle at 35% 25%,#fa5b63,#90151d 75%);font-size:15px}
+#power{position:absolute;right:176px;bottom:82px;width:88px;height:8px;border-radius:8px;background:#000b;border:1px solid #fff4;overflow:hidden}
+#powerFill{height:100%;width:0;background:#fff}
+#hint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:10px;color:#ffffff40;white-space:nowrap}
+#portrait{display:none;position:absolute;inset:0;z-index:20;align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle,#16242f,#020508 75%);color:#fff}
+#portrait .card{padding:32px;width:min(90%,430px);border:1px solid #ffffff22;border-radius:20px;background:#071018ee}
+#portrait .icon{font-size:58px}#portrait h2{margin:8px 0;font-size:24px}#portrait p{margin:0;color:#aeb9c1;font-size:13px}
+#menu,#end{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#163849,#020508 72%);color:#fff}
+.card{width:min(580px,88vw);padding:35px;text-align:center;background:#071018ef;border:1px solid #ffffff24;border-radius:22px;box-shadow:0 30px 100px #000d}
+.logo{font-size:46px;font-weight:1000;line-height:.9;letter-spacing:-2px}.sub{margin-top:12px;color:#9daab3;font-size:12px;letter-spacing:3px}
+.match{margin:28px 0 8px;font-size:25px;font-weight:1000}.start{margin-top:22px;border:0;border-radius:9px;padding:14px 34px;background:#f3f5f6;color:#071018;font-weight:1000;font-size:16px}
+#end{display:none}.final{font-size:64px;font-weight:1000;margin:14px}
+@media (orientation:portrait){
+ #ui,#rinkSvg{display:none}
+ #portrait{display:flex}
+}
 </style>
 </head>
 <body>
-<canvas id="game"></canvas>
+<div id="app">
+<svg id="rinkSvg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" aria-label="florbalové hřiště">
+<defs>
+ <linearGradient id="ice" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcecf5"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#dcecf5"/></linearGradient>
+ <linearGradient id="board" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f1f3f3"/><stop offset="1" stop-color="#8d969b"/></linearGradient>
+ <filter id="shadow"><feGaussianBlur stdDeviation="10"/></filter>
+ <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
+</defs>
+<rect width="1600" height="900" fill="#020508"/>
+<!-- arena -->
+<rect x="0" y="0" width="1600" height="95" fill="#111a21"/>
+<g opacity=".35" fill="#82909a"><circle cx="60" cy="45" r="22"/><circle cx="130" cy="30" r="15"/><circle cx="1490" cy="35" r="18"/><circle cx="1550" cy="55" r="24"/></g>
+<rect x="48" y="105" width="1504" height="690" rx="58" fill="#000" opacity=".65" filter="url(#shadow)"/>
+<rect x="55" y="95" width="1490" height="700" rx="58" fill="url(#ice)" stroke="#e8ecee" stroke-width="8"/>
+<rect x="63" y="103" width="1474" height="684" rx="51" fill="none" stroke="#b7c1c5" stroke-width="4"/>
+<!-- ice stripes -->
+<g opacity=".12">
+ <rect x="95" y="105" width="45" height="680" fill="#7ba9c0"/><rect x="190" y="105" width="45" height="680" fill="#7ba9c0"/>
+ <rect x="285" y="105" width="45" height="680" fill="#7ba9c0"/><rect x="380" y="105" width="45" height="680" fill="#7ba9c0"/>
+ <rect x="475" y="105" width="45" height="680" fill="#7ba9c0"/><rect x="570" y="105" width="45" height="680" fill="#7ba9c0"/>
+ <rect x="665" y="105" width="45" height="680" fill="#7ba9c0"/><rect x="760" y="105" width="45" height="680" fill="#7ba9c0"/>
+ <rect x="855" y="105" width="45" height="680" fill="#7ba9c0"/><rect x="950" y="105" width="45" height="680" fill="#7ba9c0"/>
+ <rect x="1045" y="105" width="45" height="680" fill="#7ba9c0"/><rect x="1140" y="105" width="45" height="680" fill="#7ba9c0"/>
+ <rect x="1235" y="105" width="45" height="680" fill="#7ba9c0"/><rect x="1330" y="105" width="45" height="680" fill="#7ba9c0"/>
+ <rect x="1425" y="105" width="45" height="680" fill="#7ba9c0"/>
+</g>
+<!-- boards -->
+<path d="M55 145 Q55 95 105 95 H1495 Q1545 95 1545 145" fill="none" stroke="#f7f8f8" stroke-width="10"/>
+<path d="M55 745 Q55 795 105 795 H1495 Q1545 795 1545 745" fill="none" stroke="#f7f8f8" stroke-width="10"/>
+<rect x="55" y="95" width="1490" height="10" fill="#f0cf25"/><rect x="55" y="785" width="1490" height="10" fill="#f0cf25"/>
+<!-- markings -->
+<line x1="800" y1="105" x2="800" y2="785" stroke="#c92a35" stroke-width="5"/>
+<line x1="495" y1="105" x2="495" y2="785" stroke="#2d64b6" stroke-width="7"/>
+<line x1="1105" y1="105" x2="1105" y2="785" stroke="#2d64b6" stroke-width="7"/>
+<g fill="none" stroke="#c92a35" stroke-width="4">
+ <circle cx="800" cy="445" r="65"/><circle cx="495" cy="445" r="48"/><circle cx="1105" cy="445" r="48"/>
+ <circle cx="210" cy="275" r="48"/><circle cx="210" cy="615" r="48"/><circle cx="1390" cy="275" r="48"/><circle cx="1390" cy="615" r="48"/>
+</g>
+<g fill="#c92a35"><circle cx="800" cy="445" r="5"/><circle cx="495" cy="445" r="5"/><circle cx="1105" cy="445" r="5"/></g>
+<!-- goal creases and goals -->
+<g fill="#d7e7ee" stroke="#5a7c8e" stroke-width="3">
+ <path d="M75 365 Q150 445 75 525 L75 365Z"/><path d="M1525 365 Q1450 445 1525 525 L1525 365Z"/>
+</g>
+<g fill="none" stroke="#d33a3f" stroke-width="7"><path d="M68 360 Q150 445 68 530"/><path d="M1532 360 Q1450 445 1532 530"/></g>
+<!-- players, intentionally modest size -->
+<g id="players"></g>
+<g id="puck"><ellipse cx="800" cy="450" rx="9" ry="5" fill="#0008"/><circle cx="800" cy="446" r="7" fill="#171a1c"/></g>
+</svg>
 
-<div id="rotate"><div class="rbox"><div class="ico">↻</div><h2>Otoč telefon na šířku</h2><p>Havířov Floorball je navržený jako starší konzolová sportovní hra v poměru 16:9.</p></div></div>
-
-<div id="hud">
-  <div id="score">
-    <span class="team blue">SLOVAN</span><span id="bs" class="score">0</span>
-    <span id="clock" class="clock">03:00</span>
-    <span id="ys" class="score">0</span><span class="team yellow">TORPÉDO</span>
-  </div>
-  <div id="msg"></div>
-
-  <div id="joy"><div id="knob"></div></div>
-  <button id="pass" class="btn">PASS</button>
-  <button id="switch" class="btn">HRÁČ</button>
-  <button id="check" class="btn">TLAK</button>
-  <button id="shoot" class="btn">STŘELA</button>
-  <div id="bar"><div id="fill"></div></div>
-  <div id="help">JOYSTICK = POHYB • PASS = PŘIHRÁVKA • STŘELA = NABÍJET • HRÁČ = PŘEPNOUT</div>
+<div id="ui">
+ <div id="score"><span class="team blue">SLOVAN</span><span class="sc" id="bs">0</span><span class="clock" id="clock">03:00</span><span class="sc" id="ys">0</span><span class="team yellow">TORPÉDO</span></div>
+ <div id="joystick"><div id="knob"></div></div>
+ <button class="btn" id="pass">PASS</button><button class="btn" id="switch">HRÁČ</button><button class="btn" id="check">TLAK</button><button class="btn" id="shoot">STŘELA</button>
+ <div id="power"><div id="powerFill"></div></div>
+ <div id="hint">JOYSTICK = POHYB • PASS = PŘIHRÁVKA • STŘELA = NABIJET • HRÁČ = PŘEPNOUT</div>
 </div>
 
-<div id="start">
-  <div class="card">
-    <div class="logo">HAVÍŘOV<br>FLOORBALL</div>
-    <div class="sub">RETRO 3D EDITION</div>
-    <div class="match"><span class="blue">SLOVAN</span> × <span class="yellow">TORPÉDO</span></div>
-    <button class="start" id="startBtn">ZAČÍT ZÁPAS</button>
-    <div class="note">Pohled ve stylu starších sportovních konzolových her</div>
-  </div>
-</div>
+<div id="portrait"><div class="card"><div class="icon">↻</div><h2>Otoč telefon na šířku</h2><p>Hra je navržená jako klasická konzolová sportovní hra.</p></div></div>
 
-<div id="end">
-  <div class="card">
-    <div class="sub">KONEC ZÁPASU</div>
-    <div id="final" class="final">0 : 0</div>
-    <div id="result" class="note"></div>
-    <button class="start" id="again">HRÁT ZNOVU</button>
-  </div>
+<div id="menu"><div class="card"><div class="logo">HAVÍŘOV<br>FLOORBALL</div><div class="sub">RETRO CONSOLE EDITION</div><div class="match"><span class="blue">SLOVAN</span> × <span class="yellow">TORPÉDO</span></div><button class="start" id="start">ZAČÍT ZÁPAS</button></div></div>
+<div id="end"><div class="card"><div class="sub">KONEC ZÁPASU</div><div class="final" id="final">0 : 0</div><div id="result"></div><button class="start" id="again">HRÁT ZNOVU</button></div></div>
 </div>
 
 <script>
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-let W=0,H=0,DPR=1,VIEW_W=1600,VIEW_H=900,VIEW_S=1,VIEW_X=0,VIEW_Y=0;
-function resize(){
-  DPR=Math.min(2,devicePixelRatio||1);
-  W=innerWidth; H=innerHeight;
-  canvas.width=Math.round(W*DPR);
-  canvas.height=Math.round(H*DPR);
-  canvas.style.width=W+'px';
-  canvas.style.height=H+'px';
-  VIEW_S=Math.min(W/VIEW_W,H/VIEW_H);
-  VIEW_X=(W-VIEW_W*VIEW_S)/2;
-  VIEW_Y=(H-VIEW_H*VIEW_S)/2;
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-}
-addEventListener('resize',resize);
-addEventListener('orientationchange',()=>setTimeout(resize,100));
-resize();
-
-const FIELD={L:-18,R:18,T:-9,B:9};
-const players=[];
-function P(team,x,z,num,gk=false){players.push({team,x,z,num,gk,homeX:x,homeZ:z,dir:team==='B'?1:-1,speed:gk?3.7:5.8,r:0.42})}
-function setup(){
- players.length=0;
- P('B',-16.8,0,1,true);P('B',-7,-4.2,9);P('B',-7,0,17);P('B',-7,4.2,21);P('B',-2,0,4);
- P('Y',16.8,0,1,true);P('Y',7,-4.2,8);P('Y',7,0,10);P('Y',7,4.2,19);P('Y',2,0,5);
-}
-setup();
-
-let controlled=players[2],owner=controlled;
-let puck={x:-6.2,z:0,vx:0,vz:0};
-let blue=0,yellow=0,time=180,running=false,charge=0,charging=false;
-let joy={x:0,y:0};
-
-function setOwner(p){owner=p;puck.x=p.x+p.dir*.62;puck.z=p.z+.12;puck.vx=puck.vz=0}
-function nearest(team){return players.filter(p=>p.team===team&&!p.gk).sort((a,b)=>Math.hypot(a.x-puck.x,a.z-puck.z)-Math.hypot(b.x-puck.x,b.z-puck.z))[0]}
-function msg(t){const e=document.getElementById('msg');e.textContent=t;e.style.opacity=1;clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity=0,500)}
-function pass(){
- if(!running||owner!==controlled)return;
- const mates=players.filter(p=>p.team===controlled.team&&!p.gk&&p!==controlled).sort((a,b)=>Math.hypot(a.x-puck.x,a.z-puck.z)-Math.hypot(b.x-puck.x,b.z-puck.z));
- const m=mates[0];if(!m)return;
- const dx=m.x-controlled.x,dz=m.z-controlled.z,l=Math.hypot(dx,dz)||1;
- owner=null;puck.vx=dx/l*12;puck.vz=dz/l*12;msg('PŘIHRÁVKA');
-}
-function shoot(){
- if(!running||owner!==controlled)return;
- const dx=Math.abs(joy.x)>.1?joy.x:controlled.dir,dz=Math.abs(joy.y)>.1?joy.y:0,l=Math.hypot(dx,dz)||1;
- const power=12+charge*14;owner=null;puck.vx=dx/l*power;puck.vz=dz/l*power;
- msg(charge>.65?'PŘÍKLEP':'STŘELA');charge=0;document.getElementById('fill').style.width='0';
-}
-function check(){
- if(!running)return;
- const opp=players.find(p=>p.team!==controlled.team&&!p.gk&&Math.hypot(p.x-controlled.x,p.z-controlled.z)<1.45);
- if(opp){setOwner(controlled);msg('VYBOJOVANÝ MÍČ')}
-}
-
-document.getElementById('switch').onclick=()=>{controlled=nearest(controlled.team);msg('HRÁČ #'+controlled.num)}
-document.getElementById('pass').onclick=pass;
-document.getElementById('check').onclick=check;
-
-const joyEl=document.getElementById('joy'),knob=document.getElementById('knob');
-function joySet(e){
- const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
- let x=e.clientX-cx,y=e.clientY-cy,l=Math.hypot(x,y),m=51;if(l>m){x=x/l*m;y=y/l*m}
- joy.x=x/m;joy.y=y/m;knob.style.transform=`translate(${x}px,${y}px)`
-}
-joyEl.addEventListener('pointerdown',e=>{joyEl.setPointerCapture(e.pointerId);joySet(e)});
-joyEl.addEventListener('pointermove',e=>e.buttons&&joySet(e));
-joyEl.addEventListener('pointerup',()=>{joy.x=joy.y=0;knob.style.transform='translate(0,0)'});
-
-const shootEl=document.getElementById('shoot');
-shootEl.addEventListener('pointerdown',()=>{if(running)charging=true});
-shootEl.addEventListener('pointerup',()=>{if(charging)shoot();charging=false});
-setInterval(()=>{if(charging){charge=Math.min(1,charge+.025);document.getElementById('fill').style.width=(charge*100)+'%'}},40);
-
-function start(){
- document.getElementById('start').style.display='none';document.getElementById('end').style.display='none';
- blue=yellow=0;time=180;document.getElementById('bs').textContent=0;document.getElementById('ys').textContent=0;
- setup();controlled=players[2];setOwner(controlled);running=true;msg('ZÁPAS ZAČÍNÁ');
-}
-document.getElementById('startBtn').onclick=start;document.getElementById('again').onclick=start;
-
-/* --------- 2.5D renderer: stable, game-like and no external engine --------- */
-function project(x,z){
-  // Fixed 16:9 virtual scene. The whole rink is uniformly fitted into
-  // the device viewport, so portrait Safari can never crop/zoom the field.
-  const depth=(z-FIELD.T)/(FIELD.B-FIELD.T);
-  const ps=.48+.72*depth;
-  return {
-    x:VIEW_X+(VIEW_W/2+x*ps*VIEW_W/39)*VIEW_S,
-    y:VIEW_Y+(145+depth*520+Math.sin(depth*Math.PI)*22)*VIEW_S,
-    s:ps*VIEW_S
-  };
-}
-function poly(points,fill,stroke,lw=1){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.lineWidth=lw;ctx.strokeStyle=stroke;ctx.stroke()}}
-function line(a,b,color,w=1){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=color;ctx.lineWidth=w;ctx.stroke()}
-function ellipseWorld(x,z,rx,rz,fill,stroke){
- const p=project(x,z);ctx.beginPath();ctx.ellipse(p.x,p.y,rx*p.s*VIEW_W/39,rz*p.s*VIEW_W/39,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.stroke()}
-}
-function drawField(){
- const a=project(FIELD.L,FIELD.T),b=project(FIELD.R,FIELD.T),c=project(FIELD.R,FIELD.B),d=project(FIELD.L,FIELD.B);
- // ice
- poly([a,b,c,d],'#dfeef4');
- // stripes
- for(let i=-16;i<=16;i+=4){let p1=project(i,FIELD.T),p2=project(i,FIELD.B);line(p1,p2,'#cbdde5',1)}
- // center + blue lines
- line(project(0,FIELD.T),project(0,FIELD.B),'#c8202b',3);
- line(project(-9,FIELD.T),project(-9,FIELD.B),'#275ba7',2.5);
- line(project(9,FIELD.T),project(9,FIELD.B),'#275ba7',2.5);
- // faceoff circles
- [-9,0,9].forEach(x=>ellipseWorld(x,0,1.6,1.0,'transparent','#cf3d47'));
- // crease
- ellipseWorld(-16.3,0,1.25,2.4,'#c9e3ef','#3987bc');
- ellipseWorld(16.3,0,1.25,2.4,'#c9e3ef','#3987bc');
- // boards
- poly([a,b,{x:b.x,y:b.y+10},{x:a.x,y:a.y+10}],'#f4f6f7','#b7c3ca',2);
- poly([d,c,{x:c.x,y:c.y+14},{x:d.x,y:d.y+14}],'#f4f6f7','#b7c3ca',2);
- // goals
- for(const x of [-18.2,18.2]){
-  const p=project(x,0);ctx.save();ctx.strokeStyle='#d33';ctx.lineWidth=4;
-  ctx.strokeRect(p.x-(x<0?18:0),p.y-24,36,48);ctx.restore();
+const NS='http://www.w3.org/2000/svg',playersEl=document.getElementById('players'),puckEl=document.getElementById('puck');
+const rink={x:55,y:95,w:1490,h:700},midX:800;
+let players=[],controlled=null,owner=null,running=false,time=180,blue=0,yellow=0,charge=0;
+const input={x:0,y:0};
+function svg(tag,attrs={}){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e}
+function player(team,x,y,num,role='F'){return {team,x,y,num,role,homeX:x,homeY:y,speed:230,dir:team==='blue'?1:-1,g:null}}
+function make(){
+ players=[
+ player('blue',145,445,1,'GK'),player('blue',390,275,7),player('blue',420,445,17),player('blue',390,615,21),player('blue',620,445,4),
+ player('yellow',1455,445,1,'GK'),player('yellow',1210,275,3),player('yellow',1180,445,11),player('yellow',1210,615,19),player('yellow',980,445,5)
+ ];
+ playersEl.innerHTML='';
+ for(const p of players){
+  const g=svg('g');g.setAttribute('transform',`translate(${p.x} ${p.y})`);
+  g.append(svg('ellipse',{cx:3,cy:24,rx:24,ry:8,fill:'#0006'}));
+  g.append(svg('rect',{x:-13,y:12,width:10,height:18,rx:4,fill:'#10151a'}),svg('rect',{x:3,y:12,width:10,height:18,rx:4,fill:'#10151a'}));
+  const body=svg('ellipse',{cx:0,cy:0,rx:20,ry:26,stroke:'#111a', 'stroke-width':2});
+  body.setAttribute('fill',p.team==='blue'?'#2476d0':'#e0c523');g.append(body);
+  g.append(svg('circle',{cx:0,cy:-29,r:10,fill:'#d7ad8b'}));
+  g.append(svg('path',{d:'M-11 -31 Q0 -43 11 -31',fill:p.team==='blue'?'#092653':'#171717'}));
+  g.append(svg('text',{x:0,y:5,'text-anchor':'middle','font-size':11,'font-weight':900,fill:p.team==='blue'?'#fff':'#111'}));g.lastChild.textContent=p.num;
+  g.append(svg('line',{x:p.dir*7,y:7,x2:p.dir*39,y2:27,stroke:'#efe5c8','stroke-width':4,'stroke-linecap':'round'}));
+  g.append(svg('line',{x:p.dir*39,y:27,x2:p.dir*47,y2:24,stroke:'#efe5c8','stroke-width':3}));
+  playersEl.append(g);p.g=g;
  }
+ owner=players[2];controlled=players[2];updatePuck();
 }
-function drawPlayer(p){
- const q=project(p.x,p.z),s=q.s*VIEW_W/39;
- const col=p.team==='B'?'#1675d1':'#e0bf19',dark=p.team==='B'?'#0a2d59':'#161616';
- // shadow
- ctx.beginPath();ctx.ellipse(q.x,q.y+6*s,18*s,7*s,0,0,Math.PI*2);ctx.fillStyle='#0004';ctx.fill();
- // legs
- ctx.strokeStyle=dark;ctx.lineWidth=5*s;ctx.lineCap='round';
- line({x:q.x-5*s,y:q.y},{x:q.x-8*s,y:q.y+18*s},dark,5*s);
- line({x:q.x+5*s,y:q.y},{x:q.x+8*s,y:q.y+18*s},dark,5*s);
- // body
- ctx.beginPath();ctx.ellipse(q.x,q.y-12*s,15*s,20*s,0,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#fff8';ctx.lineWidth=1;ctx.stroke();
- // head
- ctx.beginPath();ctx.arc(q.x,q.y-34*s,9*s,0,Math.PI*2);ctx.fillStyle='#c88d66';ctx.fill();
- // number
- ctx.fillStyle=p.team==='B'?'#fff':'#111';ctx.font=`900 ${Math.max(9,12*s)}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.num,q.x,q.y-13*s);
- // stick
- ctx.strokeStyle='#e9e1c5';ctx.lineWidth=Math.max(2,3*s);ctx.beginPath();ctx.moveTo(q.x+p.dir*8*s,q.y+2*s);ctx.lineTo(q.x+p.dir*30*s,q.y+19*s);ctx.stroke();
- ctx.strokeStyle='#444';ctx.lineWidth=Math.max(2,3*s);ctx.beginPath();ctx.moveTo(q.x+p.dir*30*s,q.y+19*s);ctx.lineTo(q.x+p.dir*38*s,q.y+19*s);ctx.stroke();
- if(p===controlled){ctx.beginPath();ctx.arc(q.x,q.y-46*s,4*s,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill()}
+function updatePuck(){
+ if(owner){puckEl.setAttribute('transform',`translate(${owner.x+(owner.team==='blue'?27:-27)} ${owner.y+4})`)}
 }
-function drawPuck(){const p=project(puck.x,puck.z);const r=Math.max(3,p.s*VIEW_W/150);ctx.beginPath();ctx.ellipse(p.x,p.y+2,r*1.35,r*.7,0,0,Math.PI*2);ctx.fillStyle='#111';ctx.fill();ctx.strokeStyle='#fff8';ctx.stroke()}
-
-function aiMove(p,dt){
- let tx=p.homeX,tz=p.homeZ;
- if(p.gk){tx=p.team==='B'?-16.8:16.8;tz=Math.max(-3.5,Math.min(3.5,puck.z))}
- else if(owner===p){tx=p.team==='B'?15:-15;tz=0}
- else if(!owner&&nearest(p.team)===p){tx=puck.x;tz=puck.z}
- else if(owner&&owner.team!==p.team){tx=owner.x;tz=owner.z}
- let dx=tx-p.x,dz=tz-p.z,l=Math.hypot(dx,dz);
- if(l>.08){p.x+=dx/l*p.speed*dt;p.z+=dz/l*p.speed*dt;p.dir=dx>=0?1:-1}
- p.x=Math.max(-17.2,Math.min(17.2,p.x));p.z=Math.max(-8,Math.min(8,p.z));
+function movePlayer(p,tx,ty,dt,fac=.55){
+ let dx=tx-p.x,dy=ty-p.y,l=Math.hypot(dx,dy);if(l>3){p.x+=dx/l*p.speed*fac*dt;p.y+=dy/l*p.speed*fac*dt;p.dir=dx>=0?1:-1}
+ p.x=Math.max(rink.x+35,Math.min(rink.x+rink.w-35,p.x));p.y=Math.max(rink.y+35,Math.min(rink.y+rink.h-35,p.y));
+ p.g.setAttribute('transform',`translate(${p.x} ${p.y})`);
 }
 function update(dt){
  if(!running)return;
- time-=dt;
- if(time<=0){time=0;running=false;document.getElementById('final').textContent=`${blue} : ${yellow}`;document.getElementById('result').textContent=blue>yellow?'VYHRÁL SLOVAN HAVÍŘOV':yellow>blue?'VYHRÁLO TORPÉDO HAVÍŘOV':'REMÍZA';document.getElementById('end').style.display='flex';return}
- if(owner===controlled&&Math.hypot(joy.x,joy.y)>.05){
-   let l=Math.hypot(joy.x,joy.y);controlled.x+=joy.x/l*controlled.speed*dt;controlled.z+=joy.y/l*controlled.speed*dt;controlled.dir=joy.x>=0?1:-1;
- }
- for(const p of players)if(p!==controlled)aiMove(p,dt);
- if(owner){puck.x=owner.x+owner.dir*.62;puck.z=owner.z+.12}
- else{
-  puck.x+=puck.vx*dt;puck.z+=puck.vz*dt;puck.vx*=Math.pow(.05,dt);puck.vz*=Math.pow(.05,dt);
-  if(puck.z<-8.7){puck.z=-8.7;puck.vz*=-.8}if(puck.z>8.7){puck.z=8.7;puck.vz*=-.8}
-  for(const p of players)if(!p.gk&&Math.hypot(p.x-puck.x,p.z-puck.z)<.55){setOwner(p);break}
-  if(puck.x<-19){yellow++;document.getElementById('ys').textContent=yellow;resetAfterGoal('GÓL TORPÉDO')}
-  if(puck.x>19){blue++;document.getElementById('bs').textContent=blue;resetAfterGoal('GÓL SLOVAN')}
- }
+ time-=dt;if(time<=0){time=0;running=false;document.getElementById('final').textContent=`${blue} : ${yellow}`;document.getElementById('result').textContent=blue>yellow?'VYHRÁL SLOVAN':yellow>blue?'VYHRÁLO TORPÉDO':'REMÍZA';document.getElementById('end').style.display='flex';return}
  document.getElementById('clock').textContent=`${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')}`;
+ let l=Math.hypot(input.x,input.y);if(l>.05){controlled.x+=input.x/l*controlled.speed*dt;controlled.y+=input.y/l*controlled.speed*dt;controlled.dir=input.x>=0?1:-1}
+ controlled.x=Math.max(rink.x+35,Math.min(rink.x+rink.w-35,controlled.x));controlled.y=Math.max(rink.y+35,Math.min(rink.y+rink.h-35,controlled.y));
+ controlled.g.setAttribute('transform',`translate(${controlled.x} ${controlled.y})`);
+ for(const p of players)if(p!==controlled){
+  let tx=p.homeX,ty=p.homeY;
+  if(p.role==='GK'){tx=p.team==='blue'?rink.x+55:rink.x+rink.w-55;ty=Math.max(320,Math.min(570,owner?owner.y:445))}
+  else if(!owner){tx=p.x;ty=p.y}
+  else if(owner===p){tx=p.team==='blue'?rink.x+rink.w-40:rink.x+40;ty=445}
+  else if(owner.team!==p.team){tx=owner.x+(p.homeX-owner.x)*.25;ty=owner.y+(p.homeY-owner.y)*.25}
+  movePlayer(p,tx,ty,dt,p.role==='GK'?.45:.28)
+ }
+ if(owner)updatePuck();
 }
-function resetAfterGoal(t){owner=null;puck.x=0;puck.z=0;puck.vx=puck.vz=0;msg(t);setTimeout(()=>{if(running){setup();controlled=players[2];setOwner(controlled)}},700)}
+function loop(t){const dt=Math.min(.033,(t-(loop.last||t))/1000);loop.last=t;update(dt);requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
 
-function render(){
- ctx.setTransform(DPR,0,0,DPR,0,0);
- ctx.clearRect(0,0,W,H);
- // dark arena
- const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#071019');g.addColorStop(1,'#101820');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- // fixed 16:9 play area, letterboxed rather than cropped
- ctx.save();
- ctx.translate(VIEW_X,VIEW_Y);
- ctx.scale(VIEW_S,VIEW_S);
- ctx.fillStyle='#05090d';ctx.fillRect(0,0,VIEW_W,VIEW_H);
- ctx.restore();
- // arena lights
- ctx.globalAlpha=.18;for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(W*(.1+i*.12),H*.12,90,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill()}ctx.globalAlpha=1;
- drawField();
- // players sorted by depth
- [...players].sort((a,b)=>a.z-b.z).forEach(drawPlayer);
- drawPuck();
-}
-let last=performance.now();function loop(t){const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);render();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+const joy=document.getElementById('joystick'),knob=document.getElementById('knob');
+function joyMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,m=48;let dx=e.clientX-cx,dy=e.clientY-cy,l=Math.hypot(dx,dy);if(l>m){dx*=m/l;dy*=m/l}input.x=dx/m;input.y=dy/m;knob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`}
+joy.addEventListener('pointerdown',e=>{joy.setPointerCapture(e.pointerId);joyMove(e)});joy.addEventListener('pointermove',e=>{if(e.buttons)joyMove(e)});joy.addEventListener('pointerup',()=>{input.x=input.y=0;knob.style.transform='translate(-50%,-50%)'});
+function pass(){if(owner!==controlled)return;const mates=players.filter(p=>p.team===controlled.team&&p!==controlled).sort((a,b)=>Math.hypot(a.x-controlled.x,a.y-controlled.y)-Math.hypot(b.x-controlled.x,b.y-controlled.y));if(mates[0])owner=mates[0]}
+function shoot(){if(owner!==controlled)return;owner=null;document.getElementById('powerFill').style.width='0'}
+document.getElementById('pass').onclick=pass;document.getElementById('shoot').onpointerdown=()=>{charge=0};document.getElementById('shoot').onpointerup=shoot;
+document.getElementById('switch').onclick=()=>{const m=players.filter(p=>p.team===controlled.team&&p!==controlled);controlled=m.sort((a,b)=>Math.hypot(a.x-owner?.x||0,a.y-owner?.y||0)-Math.hypot(b.x-owner?.x||0,b.y-owner?.y||0))[0]||controlled};
+document.getElementById('check').onclick=()=>{if(owner&&owner.team!==controlled.team&&Math.hypot(owner.x-controlled.x,owner.y-controlled.y)<70)owner=controlled};
+setInterval(()=>{if(charge<1&&document.activeElement===document.getElementById('shoot'))charge=Math.min(1,charge+.05);document.getElementById('powerFill').style.width=(charge*100)+'%'},50);
+function start(){document.getElementById('menu').style.display='none';document.getElementById('end').style.display='none';blue=yellow=0;time=180;document.getElementById('bs').textContent=0;document.getElementById('ys').textContent=0;make();running=true}
+document.getElementById('start').onclick=start;document.getElementById('again').onclick=start;
 </script>
 </body>
 </html>
-<style>
-@media (orientation:portrait){
-  #rotate{display:flex}
-}
-@media (orientation:landscape) and (max-height:520px){
-  #score{top:8px;height:48px;min-width:390px}
-  .team{font-size:13px}.score{font-size:28px}.clock{font-size:16px}
-  #joy{width:128px;height:128px;left:18px;bottom:15px}
-  #knob{left:36px;top:36px;width:56px;height:56px}
-  #shoot{width:96px;height:96px;right:18px;bottom:15px}
-  #pass{width:70px;height:70px;right:112px;bottom:92px}
-  #switch{right:24px;bottom:118px}
-  #check{right:100px;bottom:15px}
-}
-</style>
